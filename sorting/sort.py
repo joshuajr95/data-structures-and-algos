@@ -82,6 +82,10 @@ def merge_sort(list):
     return merge(lower_half, upper_half)
 
 
+'''
+Recursive sorting algorithm that sorts the list in-place. Usually
+considered the best sorting algorithm.
+'''
 def quicksort(list, start, end):
 
     # base case
