@@ -10,35 +10,11 @@ This file implements a binary search tree data structure.
 class Node:
 
     # default constructor creates empty node
-    def __init__(self):
-        self.leftChild = None
-        self.rightChild = None
-        self.parent = None
-        self.value = None
-    
-
-    # constructor creates node with value but no children
-    def __init__(self, value):
-        self.value = value
-        self.leftChild = None
-        self.rightChild = None
-        self.parent = None
-    
-
-    # constructor creates node with value and children
-    def __init__(self, value, parent, leftChild, rightChild):
-        self.value = value
-        self.parent = parent
+    def __init__(self, value=None, parent=None, leftChild=None, rightChild=None):
         self.leftChild = leftChild
         self.rightChild = rightChild
-    
-
-    # copy constructor creates new node that is copy of old node
-    def __init__(self, node):
-        self.value = node.value
-        self.parent = node.parent
-        self.leftChild = node.leftChild
-        self.rightChild = node.rightChild
+        self.parent = parent
+        self.value = value
     
 
     def __str__(self):
@@ -48,10 +24,10 @@ class Node:
     def getLeftChild(self):
         return self.leftChild
     
-
     def getRightChild(self):
         return self.rightChild
     
+
     def isRoot(self):
         return self.parent is None
     
@@ -83,17 +59,25 @@ class Node:
 class BinarySearchTree:
     
     # default constructor creates empty BST
-    def __init__(self):
+    def __init__(self, value=None):
         self.root = None
-    
-    # create a new BST with node containing value as root
-    def __init(self, value):
-        self.root = Node(value)
+        self.value = value
     
 
     # checks the rep invariant of the data structure
     def __checkRep(self, node):
-        pass
+        if node.isLeaf():
+            return True
+        elif node.getLeftChild() is None:
+            return node.value <= node.getRightChild().value and self.__checkRep(node.getRightChild())
+        elif node.getRightChild() is None:
+            return node.value >= node.getLeftChild().value and self.__checkRep(node.getLeftChild())
+        else:
+            leftSubTreeValid = self.__checkRep(node.getLeftChild())
+            rightSubTreeValid = self.__checkRep(node.getRightChild())
+            currentNodeValid = node.value >= node.getLeftChild().value and node.value <= node.getRightChild().value
+            return leftSubTreeValid and rightSubTreeValid and currentNodeValid
+    
     
 
     # private insert method implements the actual insertion of nodes.
@@ -110,7 +94,7 @@ class BinarySearchTree:
                 node.leftChild = nodeToInsert
         
         else:
-            if node.getRightChild() in not None:
+            if node.getRightChild() is not None:
                 self.__insert(value, node.getRightChild())
             else:
                 nodeToInsert = Node(value)
@@ -124,6 +108,9 @@ class BinarySearchTree:
             self.root = Node(value)
         else:
             self.__insert(value, self.root)
+        
+        if not self.__checkRep(self.root):
+            raise Exception("Rep invariant violated")
     
 
     # private get method gets the desired value recursively. This method
@@ -255,6 +242,7 @@ class BinarySearchTree:
         if node is None:
             raise Exception("Value not in tree.")
         
+        nodeVal = None
 
         if node.isLeaf():
             if node.isLeftChild():
@@ -268,7 +256,7 @@ class BinarySearchTree:
             else:
                 raise Exception("Oops! Something went wrong!")
             
-            return node.value
+            nodeVal = node.value
         
         elif node.getLeftChild() is None:
             if node.isLeftChild():
@@ -288,7 +276,7 @@ class BinarySearchTree:
             else:
                 raise Exception("Oops! Something went wrong!")
             
-            return node.value
+            nodeVal = node.value
         
         elif node.getRightChild() is None:
             if node.isLeftChild():
@@ -308,7 +296,7 @@ class BinarySearchTree:
             else:
                 raise Exception("Oops! Something went wrong!")
             
-            return node.value
+            nodeVal = node.value
         
         else:
             nodeToReplace = self.__max(node.getLeftChild(), True)
@@ -336,65 +324,86 @@ class BinarySearchTree:
                     nodeToReplace.leftChild = None
             
 
-            return nodeVal
+        if not self.__checkRep(self.root):
+            raise Exception("Rep invariant violated.")
+
+        return nodeVal
     
 
-    def __traverse(node, nodeFunction, traverseOrder):
+    def __traverseInOrder(self, node, nodeFunction):
+
+        if node.isLeaf():
+            nodeFunction(node)
+        elif node.getLeftChild() is None:
+            nodeFunction(node)
+            self.__traverseInOrder(node.getRightChild(), nodeFunction)
+        elif node.getRightChild() is None:
+            self.__traverseInOrder(node.getLeftChild(), nodeFunction)
+            nodeFunction(node)
+        else:
+            self.__traverseInOrder(node.getLeftChild(), nodeFunction)
+            nodeFunction(node)
+            self.__traverseInOrder(node.getRightChild(), nodeFunction)
+
+
+    def __traversePreOrder(self, node, nodeFunction):
+
+        if node.isLeaf():
+            nodeFunction(node)
+        elif node.getLeftChild() is None:
+            nodeFunction(node)
+            self.__traversePreOrder(node.getRightChild(), nodeFunction)
+        elif node.getRightChild() is None:
+            nodeFunction(node)
+            self.__traversePreOrder(node.getLeftChild(), nodeFunction)
+        else:
+            nodeFunction(node)
+            self.__traversePreOrder(node.getLeftChild(), nodeFunction)
+            self.__traversePreOrder(node.getRightChild(), nodeFunction)
+        
+    
+    def __traversePostOrder(self, node, nodeFunction):
+
+        if node.isLeaf():
+            nodeFunction(node)
+        elif node.getLeftChild() is None:
+            self.__traversePostOrder(node.getRightChild(), nodeFunction)
+            nodeFunction(node)
+        elif node.getRightChild() is None:
+            self.__traversePostOrder(node.getLeftChild(), nodeFunction)
+            nodeFunction(node)
+        else:
+            self.__traversePostOrder(node.getLeftChild(), nodeFunction)
+            self.__traversePostOrder(node.getRightChild(), nodeFunction)
+            nodeFunction(node)
+
+
+    def traverse(self, nodeFunction=print, traverseOrder='inorder'):
 
         if traverseOrder == 'inorder':
-            if node.isLeaf():
-                nodeFunction(node)
-            elif node.getLeftChild() is None:
-                nodeFunction(node)
-                self.__traverse(node.getRightChild(), nodeFunction, traverseOrder)
-            elif node.getRightChild() is None:
-                self.__traverse(node.getLeftChild(), nodeFunction, traverseOrder)
-                nodeFunction(node)
-            else:
-                self.__traverse(node.getLeftChild(), nodeFunction, traverseOrder)
-                nodeFunction(node)
-                self.__traverse(node.getRightChild(), nodeFunction, traverseOrder)
+            self.__traverseInOrder(self.root, nodeFunction)
 
         elif traverseOrder == 'preorder':
-            if node.isLeaf():
-                nodeFunction(node)
-            elif node.getLeftChild() is None:
-                nodeFunction(node)
-                self.__traverse(node.getRightChild(), nodeFunction, traverseOrder)
-            elif node.getRightChild() is None:
-                nodeFunction(node)
-                self.__traverse(node.getLeftChild(), nodeFunction, traverseOrder)
-            else:
-                nodeFunction(node)
-                self.__traverse(node.getLeftChild(), nodeFunction, traverseOrder)
-                self.__traverse(node.getRightChild(), nodeFunction, traverseOrder)
-        
-        elif traverseOrder == 'postorder':
-            if node.isLeaf():
-                nodeFunction(node)
-            elif node.getLeftChild() is None:
-                self.__traverse(node.getRightChild(), nodeFunction, traverseOrder)
-                nodeFunction(node)
-            elif node.getRightChild() is None:
-                self.__traverse(node.getLeftChild(), nodeFunction, traverseOrder)
-                nodeFunction(node)
-            else:
-                self.__traverse(node.getLeftChild(), nodeFunction, traverseOrder)
-                self.__traverse(node.getRightChild(), nodeFunction, traverseOrder)
-                nodeFunction(node)
+            self.__traversePreOrder(self.root, nodeFunction)
 
+        elif traverseOrder == 'postorder':
+            self.__traversePostOrder(self.root, nodeFunction)
+        
         else:
             raise Exception("Not a valid order of traversal. Options are: inorder, preorder, and postorder.")
 
-
-    def traverse(nodeFunction=print, traverseOrder='inorder'):
-        self.__traverse(self.root, nodeFunction, traverseOrder)
         
         
+def buildBST(list):
+    builtTree = BinarySearchTree()
+
+    for element in list:
+        builtTree.insert(element)
+    
+    return builtTree
 
 
-
-def bstSort(list):
+def BSTSort(list):
 
     def insertElems(node):
         sortedList.append(node.value)
