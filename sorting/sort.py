@@ -133,6 +133,48 @@ def quicksort(list, start, end):
     quicksort(list, start, pivot_index-1)
     quicksort(list, pivot_index+1, end)
 
+
+'''
+Counting sort is a linear time sorting algorithm that can only be used
+for positive integers, or data structures that have a positive integer
+field that can be sorted on. All positive integers must be less than
+some value k, and the complexity of the algorithm is O(n + k).
+'''
+def countingSort(list, k, key=lambda x: x):
+    
+    L = []
+
+    for i in range(k+1):
+        L.append([])
+    
+    
+    for j in range(len(list)):
+        print("length L: " + str(len(L)))
+        print("index: " + str(key(list[j])))
+        L[key(list[j])].append(list[j])
+    
+    output = []
+    
+    for i in range(k):
+        output.extend(L[i])
+    
+    return output
+
+
+def radixSort(list, base, digits):
+
+    sorted_list = list
+
+    
+    for i in range(digits):
+        print("digit " + str(i))
+        sorted_list = countingSort(sorted_list, base, lambda x: (x % (base**(i+1)))//(base**i))
+        print(sorted_list)
+    
+
+    return sorted_list
+
+
 '''
 Wrapper function for the sorting algorithms allows separation between
 the user of the function and the implementation. The algorithm parameter

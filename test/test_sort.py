@@ -22,14 +22,14 @@ from matplotlib import pyplot as plt
 '''
 Generates a list of random numbers to sort of a given length
 '''
-def makeList(length):
+def makeList(length, k=10000):
 
     # create empty list to fill
     randomList = []
 
     # append to list up to length
     for i in range(length):
-        randomList.append(random.randint(0, 100000))
+        randomList.append(random.randint(0, k))
     
     return randomList
 
@@ -37,7 +37,7 @@ def makeList(length):
 '''
 Times the sorting algorithm
 '''
-def timeSort(list, algorithm):
+def timeSort(list, algorithm, k=10000, key=lambda x: x):
 
     if algorithm == sort.merge_sort:
         start_time = time.process_time()
@@ -59,6 +59,13 @@ def timeSort(list, algorithm):
         stop_time = time.process_time()
 
         return stop_time - start_time
+
+    elif algorithm == sort.countingSort:
+        start_time = time.process_time()
+        algorithm(list, k)
+        stop_time = time.process_time()
+
+        return stop_time - start_time
     
     else:
         raise Exception("Sorting algorithm not recognized.")
@@ -69,14 +76,14 @@ Returns a list of times taken to sort lists of increasing length
 with the given sorting algorithm. This can, in turn, be plotted
 to give a visual representation of the asymptotic complexity.
 '''
-def getAsymptoticComplexity(algorithm, lengths):
+def getAsymptoticComplexity(algorithm, lengths, k=10000):
 
     times = []
 
     for length in lengths:
 
         # creates random list of given length
-        time_list = makeList(length)
+        time_list = makeList(length, k)
 
         # time the sorting algorithm on the given list
         sort_time = timeSort(time_list, algorithm)
@@ -115,19 +122,29 @@ def plotTimes(lengths, algorithms):
 
 if __name__ == "__main__":
 
-    lengths = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-    algorithms = [sort.insertion_sort, sort.merge_sort, sort.quicksort]
 
-    times1 = getAsymptoticComplexity(sort.insertion_sort, lengths)
-    times2 = getAsymptoticComplexity(sort.merge_sort, lengths)
+
+    #lengths = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    #lengths = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
+    lengths = [100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]
+    #algorithms = [sort.insertion_sort, sort.merge_sort, sort.quicksort]
+
+    #times1 = getAsymptoticComplexity(sort.insertion_sort, lengths)
+    #times2 = getAsymptoticComplexity(sort.merge_sort, lengths)
     times3 = getAsymptoticComplexity(sort.quicksort, lengths)
+    times4 = getAsymptoticComplexity(sort.countingSort, lengths, k=10000)
 
-    plt.plot(lengths, times1, marker='o', color='b', label='insertion sort')
-    plt.plot(lengths, times2, marker='s', color='g', label='merge sort')
+
+
+    #plt.plot(lengths, times1, marker='o', color='b', label='insertion sort')
+    #plt.plot(lengths, times2, marker='s', color='g', label='merge sort')
     plt.plot(lengths, times3, marker='v', color='r', label='quicksort')
+    plt.plot(lengths, times4, marker='x', color='k', label='counting sort')
 
     plt.legend()
     plt.show()
+
+
 
 
         

@@ -38,8 +38,10 @@ if __name__ == "__main__":
     print(myBST.getOneSmaller(5))
     print(myBST.getOneLarger(5))
 
-    myBST.delete(9)
-    myBST.delete(4)
+    myBST.delete(7)
+    myBST.delete(3)
+
+    myBST.traverse(traverseOrder='preorder')
     
     print(myBST.getOneLarger(4))
 

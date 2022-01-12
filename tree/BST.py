@@ -419,16 +419,3 @@ def BSTSort(list):
 
     return sortedList
 
-
-
-            
-
-                
-
-        
-    
-    
-
-    
-
-    
