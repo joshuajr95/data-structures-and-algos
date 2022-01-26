@@ -29,3 +29,6 @@ if __name__ == "__main__":
     mystring = myTable.delete("hello")
     print(mystring)
 
+    myTable.add(10, "hello")
+    print(myTable.get(10))
+

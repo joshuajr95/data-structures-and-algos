@@ -23,12 +23,13 @@ class TableElement:
 
 
     # constructor
-    def __init__(self, key, value, next=None, prev=None, chainNext=None, chainPrev=None):
+    def __init__(self, key, value, chainNext=None, chainPrev=None, hashCache=None):
         self.key = key
         self.value = value
         self.chainNext = chainNext
         self.chainPrev = chainPrev
-    
+        self.hashCache = hashCache
+
 
     def isEndOfChain(self):
         return self.chainNext is None
@@ -55,40 +56,57 @@ class HashTable:
     # __getHash returns a closure for dynamically altering the hash function
     # as the table changes size
     def __getHash(self, size):
-
-        # possibly change prime range to be larger
-        p = sympy.randprime(1000000000, 10000000000)
-        
-        # a and b are for linear congruence
-        a = random.randint(1, p-1)
-        b = random.randint(0, p-1)
-        
         
         def __hash(key):
-            if not (isinstance(key, int) or isinstance(key, float)):
-                keyBytes = pickle.dumps(key)
-                temp = int.from_bytes(keyBytes, 'little')
-                return ((a*temp + b) % p) % size
-            else:
-                return ((a*int(key) + b) % p) % size
+            return ((self.a*hash(key) + self.b) % self.p) % size
         
         return __hash
     
     
+    # caching the hash value allows for faster table doubling
+    def __getHashCache(self, key):
+        return (self.a*hash(key) + self.b) %self.p
+    
+    
     # size should be a power of 2
-    def __init__(self, size=16):
+    def __init__(self, size=16, primeRange=(1000000, 10000000)):
         self.size = size
         self.table = [None] * size
         self.numKeys = 0
+        self.p = sympy.randprime(primeRange[0], primeRange[1])
+        self.a = random.randint(1, self.p - 1)
+        self.b = random.randint(0, self.p - 1)
         self.hashFunc = self.__getHash(size)
-
-    
-
-    
     
 
     def __doubleTable(self):
-        pass
+        newSize = self.size * 2
+        newArray = [None] * newSize
+
+        for i in range(size):
+            while self.table[i] is not None:
+                currentElement = self.table[i]
+                
+                if currentElement.isLengthOneChain():
+                    self.table[i] = None
+                else:
+                    currentElement.chainNext.chainPrev = None
+                    self.table[i] = currentElement.chainNext
+                    currentElement.chainNext = None
+                
+                if newArray[currentElement.hashCache % newSize] is None:
+                    newArray[currentElement.hashCache % newSize] = currentElement
+                else:
+                    insertAfter = newArray[currentElement.hashCache % newSize]
+                    while insertAfter.chainNext is not None:
+                        insertAfter = insertAfter.chainNext
+                    
+                    insertAfter.chainNext = currentElement
+                    currentElement.chainPrev = insertAfter
+        
+        self.table = newArray
+        self.size = newSize
+        self.hashFunc = self.__getHash(self.size)
 
 
     def get(self, key):
@@ -114,9 +132,14 @@ class HashTable:
 
     # get rid of possible duplicates
     def add(self, key, value):
+        
+        if self.size <= self.numKeys:
+            self.__doubleTable()
+
         index = self.hashFunc(key)
 
         elementToInsert = TableElement(key, value)
+        elementToInsert.hashCache = self.__getHashCache(key)
 
         # if collision, then append table element to end of list
         if self.table[index] is not None:
